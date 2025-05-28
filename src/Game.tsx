@@ -74,6 +74,7 @@ export const Game = (props: GameProps) => {
   const [playersStarted, setPlayersStarted] = createSignal<boolean[]>(
     savedState?.playersStarted ?? props.settings.players.map(() => !props.settings.doubleIn)
   );
+  const [awaitingConfirmation, setAwaitingConfirmation] = createSignal(false);
 
   const saveGameState = () => {
     const state: GameState = {
@@ -129,6 +130,19 @@ export const Game = (props: GameProps) => {
     return throwDisplay.join(' ');
   };
 
+  const isBustTurn = () => {
+    const playerIndex = currentPlayerIndex();
+    const currentPlayerScore = playerScores()[playerIndex]!;
+    const totalThrowScore = currentThrow().reduce((sum, dart) => sum + dart, 0);
+    const newScore = currentPlayerScore - totalThrowScore;
+    
+    const lastThrow = allThrows()[allThrows().length - 1];
+    const isValidFinish = !props.settings.doubleOut || 
+      (lastThrow?.multiplier === 2 || lastThrow?.number === 50);
+    
+    return newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish);
+  };
+
   const handleScore = (score: number, multiplier: number) => {
     const totalScore = score * multiplier;
     const playerIndex = currentPlayerIndex();
@@ -174,15 +188,11 @@ export const Game = (props: GameProps) => {
     
     // Check for bust conditions
     if (newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish)) {
-      // BUST: Revert to score at start of turn
-      const turnStartScore = currentPlayerScore + currentThrow().reduce((sum, dart) => sum + dart, 0);
-      const newScores = [...playerScores()];
-      newScores[playerIndex] = turnStartScore;
-      setPlayerScores(newScores);
-      
+      // BUST: Record the throw and show confirmation
       setAllThrows([...allThrows(), dartThrow]);
       setCurrentThrow([...currentThrow(), scoreToApply]);
-      nextPlayer();
+      setDartsThrown(dartsThrown() + 1);
+      setAwaitingConfirmation(true);
       return;
     }
 
@@ -200,7 +210,7 @@ export const Game = (props: GameProps) => {
     }
 
     if (dartsThrown() >= 3) {
-      nextPlayer();
+      setAwaitingConfirmation(true);
     }
   };
 
@@ -208,6 +218,52 @@ export const Game = (props: GameProps) => {
     setCurrentPlayerIndex((currentPlayerIndex() + 1) % props.settings.players.length);
     setDartsThrown(0);
     setCurrentThrow([]);
+    setAwaitingConfirmation(false);
+  };
+
+  const confirmThrow = () => {
+    // Check if this was a bust - if so, revert score to start of turn
+    const playerIndex = currentPlayerIndex();
+    const currentPlayerScore = playerScores()[playerIndex]!;
+    const totalThrowScore = currentThrow().reduce((sum, dart) => sum + dart, 0);
+    const newScore = currentPlayerScore - totalThrowScore;
+    const lastThrow = currentThrow()[currentThrow().length - 1] || 0;
+    const scoreAfterLastDart = currentPlayerScore - (totalThrowScore - lastThrow);
+    
+    // Check if the last dart caused a bust
+    const isValidFinish = !props.settings.doubleOut || 
+      (allThrows()[allThrows().length - 1]?.multiplier === 2 || allThrows()[allThrows().length - 1]?.number === 50);
+    const isBust = newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish);
+    
+    if (isBust) {
+      // Revert to score at start of turn
+      const turnStartScore = currentPlayerScore + totalThrowScore;
+      const newScores = [...playerScores()];
+      newScores[playerIndex] = turnStartScore;
+      setPlayerScores(newScores);
+    }
+    
+    setAwaitingConfirmation(false);
+    nextPlayer();
+  };
+
+  const reenterThrow = () => {
+    // Revert to score at start of turn
+    const turnStartScore = playerScores()[currentPlayerIndex()]! + currentThrow().reduce((sum, dart) => sum + dart, 0);
+    const newScores = [...playerScores()];
+    newScores[currentPlayerIndex()] = turnStartScore;
+    setPlayerScores(newScores);
+    
+    // Remove the current turn's throws from allThrows
+    const currentPlayerThrows = allThrows().filter(t => t.playerId === currentPlayer()!.id);
+    const throwsToRemove = dartsThrown();
+    const newAllThrows = allThrows().slice(0, -throwsToRemove);
+    setAllThrows(newAllThrows);
+    
+    // Reset turn state
+    setDartsThrown(0);
+    setCurrentThrow([]);
+    setAwaitingConfirmation(false);
   };
 
   const undoLastDart = () => {
@@ -421,17 +477,55 @@ export const Game = (props: GameProps) => {
             </div>
           </div>
 
-          {/* Dart Board */}
+          {/* Dart Board or Confirmation */}
           <div class="lg:col-span-2">
-            <DartBoard onScore={handleScore} />
-            <div class="flex justify-center mt-3">
-              <button
-                onClick={() => handleScore(0, 1)}
-                class="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Miss
-              </button>
-            </div>
+            {awaitingConfirmation() ? (
+              <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class={`text-lg font-semibold mb-4 ${isBustTurn() ? 'text-red-600' : ''}`}>
+                  {isBustTurn() ? 'BUST!' : 'Confirm Your Throw'}
+                </h3>
+                <div class="mb-4">
+                  <div class="text-sm text-gray-600 mb-2">You threw:</div>
+                  <div class={`text-xl font-bold ${isBustTurn() ? 'text-red-600' : 'text-blue-600'}`}>
+                    {getCurrentThrowDisplay()}
+                  </div>
+                  <div class="text-sm text-gray-600 mt-2">
+                    Total: {currentThrow().reduce((sum, dart) => sum + dart, 0)} points
+                  </div>
+                  {isBustTurn() && (
+                    <div class="text-sm text-red-600 mt-2 font-medium">
+                      Turn voided - score will be reset
+                    </div>
+                  )}
+                </div>
+                <div class="flex justify-center gap-4">
+                  <button
+                    onClick={confirmThrow}
+                    class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={reenterThrow}
+                    class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium"
+                  >
+                    Re-enter
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <DartBoard onScore={handleScore} />
+                <div class="flex justify-center mt-3">
+                  <button
+                    onClick={() => handleScore(0, 1)}
+                    class="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    Miss
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
