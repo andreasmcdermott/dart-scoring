@@ -138,18 +138,18 @@ export const Game = (props: GameProps) => {
   return (
     <div class="min-h-screen bg-gray-100">
       <div class="container mx-auto px-4 py-6">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-4">
           <button
             onClick={handleEndGame}
-            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            class="px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
             End Game
           </button>
-          <h1 class="text-2xl font-bold">Dart Game</h1>
+          <h1 class="text-lg font-bold">Dart Game</h1>
           <button
             onClick={undoLastDart}
             disabled={currentThrow().length === 0}
-            class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="px-3 py-1.5 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Undo
           </button>
@@ -157,33 +157,49 @@ export const Game = (props: GameProps) => {
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Scores Panel */}
-          <div class="bg-white rounded-lg shadow p-4">
-            <h2 class="text-lg font-semibold mb-4">Scores</h2>
-            <div class="space-y-3">
-              {props.settings.players.map((player, index) => (
-                <div 
-                  class={`p-3 rounded ${
-                    index === currentPlayerIndex() 
-                      ? 'bg-blue-100 border-2 border-blue-500' 
-                      : 'bg-gray-50'
-                  }`}
-                >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium">{player.name}</span>
-                    <span class="text-xl font-bold">{playerScores()[index]}</span>
-                  </div>
-                  {index === currentPlayerIndex() ? (
-                    <div class="mt-2 text-sm text-gray-600 h-10">
-                      <div>Darts: {dartsThrown()}/3</div>
-                      {currentThrow().length > 0 && (
-                        <div>This throw: {currentThrow().join(', ')}</div>
-                      )}
-                    </div>
-                  ) : (
-                    <div class="mt-2 h-2"></div>
+          <div class="bg-white rounded-lg shadow p-3 max-h-[50vh] overflow-y-auto">
+            <h2 class="text-base font-semibold mb-2">Scores</h2>
+            <div class="space-y-2">
+              {/* Current Player - Always Expanded */}
+              <div class="p-2.5 rounded bg-blue-100 border-2 border-blue-500">
+                <div class="flex justify-between items-center">
+                  <span class="font-medium">{currentPlayer()!.name}</span>
+                  <span class="text-lg font-bold">{currentScore()}</span>
+                </div>
+                <div class="mt-1 text-xs text-gray-600 h-8">
+                  <div>Darts: {dartsThrown()}/3</div>
+                  {currentThrow().length > 0 && (
+                    <div>This throw: {currentThrow().join(', ')}</div>
                   )}
                 </div>
-              ))}
+              </div>
+              
+              {/* Other Players - Collapsed */}
+              {props.settings.players.length > 4 ? (
+                <div class="grid grid-cols-2 gap-1">
+                  {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
+                    const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
+                    return (
+                      <div class="p-1.5 rounded bg-gray-50 text-center">
+                        <div class="text-xs font-medium truncate">{player.name}</div>
+                        <div class="text-sm font-bold">{playerScores()[originalIndex]}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <>
+                  {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
+                    const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
+                    return (
+                      <div class="p-1.5 rounded bg-gray-50 flex justify-between items-center">
+                        <span class="text-sm font-medium">{player.name}</span>
+                        <span class="text-base font-bold">{playerScores()[originalIndex]}</span>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
           </div>
 

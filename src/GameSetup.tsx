@@ -96,8 +96,8 @@ export const GameSetup = (props: GameSetupProps) => {
   };
 
   return (
-    <div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h1 class="text-2xl font-bold text-center mb-6">Game Setup</h1>
+    <div class="max-w-md mx-auto p-4 bg-white rounded-lg shadow-lg">
+      <h1 class="text-xl font-bold text-center mb-4">New Game</h1>
       
       {/* Players Section */}
       <div class="mb-6">

@@ -33,7 +33,7 @@ const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => v
   };
 
   return (
-    <div class="flex justify-center items-center min-h-screen bg-gray-100">
+    <div class="flex justify-center items-center bg-gray-100">
       <svg width="400" height="400" viewBox="0 0 400 400">
         <circle cx={centerX} cy={centerY} r={outerRadius} fill="#000" stroke="#000" stroke-width="4" />
         
