@@ -1,0 +1,2 @@
+- Always use typescript "type" instead of "interface".
+- Always use named exports instead of default exports.
