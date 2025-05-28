@@ -99,6 +99,36 @@ export const Game = (props: GameProps) => {
   const currentPlayer = () => props.settings.players[currentPlayerIndex()];
   const currentScore = () => playerScores()[currentPlayerIndex()];
 
+  const formatDartNotation = (number: number, multiplier: number): string => {
+    if (number === 50) return 'Bull';
+    if (number === 25) return '25';
+    if (multiplier === 1) return number.toString();
+    if (multiplier === 2) return `D${number}`;
+    if (multiplier === 3) return `T${number}`;
+    return number.toString();
+  };
+
+  const getCurrentThrowDisplay = () => {
+    const currentPlayerThrows = allThrows().filter(t => t.playerId === currentPlayer()!.id);
+    const turnStartIndex = currentPlayerThrows.length - dartsThrown();
+    const currentTurnThrows = currentPlayerThrows.slice(turnStartIndex);
+    
+    const throwDisplay = [];
+    for (let i = 0; i < 3; i++) {
+      if (i < currentTurnThrows.length) {
+        const dart = currentTurnThrows[i]!;
+        if (dart.number === 0) {
+          throwDisplay.push('0');
+        } else {
+          throwDisplay.push(formatDartNotation(dart.number, dart.multiplier));
+        }
+      } else {
+        throwDisplay.push('-');
+      }
+    }
+    return throwDisplay.join(' ');
+  };
+
   const handleScore = (score: number, multiplier: number) => {
     const totalScore = score * multiplier;
     const playerIndex = currentPlayerIndex();
@@ -310,17 +340,7 @@ export const Game = (props: GameProps) => {
                       <span class="text-lg font-bold">{currentScore()}</span>
                     </div>
                     <div class="mt-1 text-xs text-gray-600">
-                      <div>This throw: {(() => {
-                        const throwDisplay = [];
-                        for (let i = 0; i < 3; i++) {
-                          if (i < currentThrow().length) {
-                            throwDisplay.push(currentThrow()[i]!.toString());
-                          } else {
-                            throwDisplay.push('-');
-                          }
-                        }
-                        return throwDisplay.join(' ');
-                      })()}</div>
+                      <div>This throw: {getCurrentThrowDisplay()}</div>
                       {(() => {
                         const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut, 3 - dartsThrown());
                         if (finishOptions.length > 0) {
@@ -378,17 +398,7 @@ export const Game = (props: GameProps) => {
                         </div>
                         {isActive && (
                           <div class="mt-1 text-xs text-gray-600">
-                            <div>This throw: {(() => {
-                              const throwDisplay = [];
-                              for (let i = 0; i < 3; i++) {
-                                if (i < currentThrow().length) {
-                                  throwDisplay.push(currentThrow()[i]!.toString());
-                                } else {
-                                  throwDisplay.push('-');
-                                }
-                              }
-                              return throwDisplay.join(' ');
-                            })()}</div>
+                            <div>This throw: {getCurrentThrowDisplay()}</div>
                             {(() => {
                               const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut, 3 - dartsThrown());
                               if (finishOptions.length > 0) {
