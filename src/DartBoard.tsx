@@ -10,8 +10,8 @@ const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => v
   const doubleInnerRadius = 125;
   const trebleOuterRadius = 115;
   const trebleInnerRadius = 85;
-  const bullseyeRadius = 15;
-  const outerBullRadius = 32;
+  const bullseyeRadius = 18;
+  const outerBullRadius = 45;
 
   const createSegmentPath = (startAngle: number, endAngle: number, innerRadius: number, outerRadius: number) => {
     const startAngleRad = (startAngle - 90) * Math.PI / 180;
