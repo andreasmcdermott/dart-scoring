@@ -1,4 +1,4 @@
-import { createSignal, For } from 'solid-js';
+import { createSignal, For, Index } from 'solid-js';
 
 export type Player = {
   id: string;
@@ -61,13 +61,12 @@ export const GameSetup = (props: GameSetupProps) => {
   };
 
   const updatePlayerName = (playerId: string, name: string) => {
-    const currentSettings = settings();
-    setSettings({
-      ...currentSettings,
-      players: currentSettings.players.map(p => 
+    setSettings(prev => ({
+      ...prev,
+      players: prev.players.map(p => 
         p.id === playerId ? { ...p, name } : p
       )
-    });
+    }));
   };
 
   const updateTargetPoints = (points: number) => {
@@ -111,18 +110,18 @@ export const GameSetup = (props: GameSetupProps) => {
       {/* Players Section */}
       <div class="mb-6">
         <h2 class="text-lg font-semibold mb-3">Players</h2>
-        <For each={settings().players}>
-          {(player) => (
+        <Index each={settings().players}>
+          {(player, index) => (
             <div class="flex gap-2 mb-2">
               <input
                 type="text"
-                value={player.name}
-                onInput={(e) => updatePlayerName(player.id, e.currentTarget.value)}
+                value={player().name}
+                onInput={(e) => updatePlayerName(player().id, e.currentTarget.value)}
                 class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Player name"
               />
               <button
-                onClick={() => removePlayer(player.id)}
+                onClick={() => removePlayer(player().id)}
                 disabled={settings().players.length <= 1}
                 class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
@@ -130,7 +129,7 @@ export const GameSetup = (props: GameSetupProps) => {
               </button>
             </div>
           )}
-        </For>
+        </Index>
         <button
           onClick={addPlayer}
           class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mt-2"
