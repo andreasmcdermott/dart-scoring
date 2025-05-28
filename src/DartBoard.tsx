@@ -6,10 +6,10 @@ const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => v
   const centerX = 195;
   const centerY = 195;
   const outerRadius = 190;
-  const doubleOuterRadius = 162;
-  const doubleInnerRadius = 142;
-  const trebleOuterRadius = 107;
-  const trebleInnerRadius = 87;
+  const doubleOuterRadius = 155;
+  const doubleInnerRadius = 125;
+  const trebleOuterRadius = 115;
+  const trebleInnerRadius = 85;
   const bullseyeRadius = 15;
   const outerBullRadius = 32;
 

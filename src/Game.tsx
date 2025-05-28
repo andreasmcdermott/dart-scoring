@@ -155,12 +155,12 @@ export const Game = (props: GameProps) => {
   const handleLegWin = () => {
     const playerIndex = currentPlayerIndex();
     const newLegsWon = [...legsWon()];
-    newLegsWon[playerIndex]++;
+    newLegsWon[playerIndex]!++;
     setLegsWon(newLegsWon);
 
     const legsToWin = Math.ceil(props.settings.legs / 2);
     
-    if (newLegsWon[playerIndex] >= legsToWin) {
+    if (newLegsWon[playerIndex]! >= legsToWin) {
       handleSetWin();
     } else {
       startNewLeg();
@@ -170,12 +170,12 @@ export const Game = (props: GameProps) => {
   const handleSetWin = () => {
     const playerIndex = currentPlayerIndex();
     const newSetsWon = [...setsWon()];
-    newSetsWon[playerIndex]++;
+    newSetsWon[playerIndex]!++;
     setSetsWon(newSetsWon);
 
     const setsToWin = Math.ceil(props.settings.sets / 2);
     
-    if (newSetsWon[playerIndex] >= setsToWin) {
+    if (newSetsWon[playerIndex]! >= setsToWin) {
       alert(`${currentPlayer()!.name} wins the match!`);
       localStorage.removeItem('dartGameState');
       props.onEndGame();
