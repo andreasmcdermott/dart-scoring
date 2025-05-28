@@ -3,9 +3,9 @@ import { For } from 'solid-js';
 const DART_BOARD_NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
 const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => void}) => {
-  const centerX = 200;
-  const centerY = 200;
-  const outerRadius = 180;
+  const centerX = 195;
+  const centerY = 195;
+  const outerRadius = 190;
   const doubleOuterRadius = 162;
   const doubleInnerRadius = 142;
   const trebleOuterRadius = 107;
@@ -34,7 +34,7 @@ const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => v
 
   return (
     <div class="flex justify-center items-center bg-gray-100">
-      <svg width="400" height="400" viewBox="0 0 400 400">
+      <svg width="400" height="400" viewBox="0 0 390 390">
         <circle cx={centerX} cy={centerY} r={outerRadius} fill="#000" stroke="#000" stroke-width="4" />
         
         <For each={DART_BOARD_NUMBERS}>
@@ -97,8 +97,8 @@ const DartBoard = ({onScore}: {onScore: (score: number, multiplier: number) => v
                 
                 {/* Number text */}
                 <text
-                  x={centerX + (outerRadius - 10) * Math.cos((startAngle + 9 - 90) * Math.PI / 180)}
-                  y={centerY + (outerRadius - 10) * Math.sin((startAngle + 9 - 90) * Math.PI / 180)}
+                  x={centerX + (doubleOuterRadius + outerRadius) / 2 * Math.cos((startAngle + 9 - 90) * Math.PI / 180)}
+                  y={centerY + (doubleOuterRadius + outerRadius) / 2 * Math.sin((startAngle + 9 - 90) * Math.PI / 180)}
                   text-anchor="middle"
                   dominant-baseline="middle"
                   fill={isEven ? "#fff" : "#000"}

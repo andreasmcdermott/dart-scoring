@@ -140,7 +140,7 @@ export const Game = (props: GameProps) => {
 
   return (
     <div class="min-h-screen bg-gray-100">
-      <div class="container mx-auto px-4 py-6">
+      <div class="container mx-auto px-4 py-4">
         <div class="flex justify-between items-center mb-4">
           <button
             onClick={handleEndGame}
@@ -148,7 +148,7 @@ export const Game = (props: GameProps) => {
           >
             End Game
           </button>
-          <h1 class="text-lg font-bold">Dart Game</h1>
+          <div></div>
           <button
             onClick={undoLastDart}
             disabled={currentThrow().length === 0}
@@ -169,11 +169,18 @@ export const Game = (props: GameProps) => {
                   <span class="font-medium">{currentPlayer()!.name}</span>
                   <span class="text-lg font-bold">{currentScore()}</span>
                 </div>
-                <div class="mt-1 text-xs text-gray-600 min-h-16">
-                  <div>Darts: {dartsThrown()}/3</div>
-                  {currentThrow().length > 0 && (
-                    <div>This throw: {currentThrow().join(', ')}</div>
-                  )}
+                <div class="mt-1 text-xs text-gray-600 min-h-12">
+                  <div>This throw: {(() => {
+                    const throwDisplay = [];
+                    for (let i = 0; i < 3; i++) {
+                      if (i < currentThrow().length) {
+                        throwDisplay.push(currentThrow()[i]!.toString());
+                      } else {
+                        throwDisplay.push('-');
+                      }
+                    }
+                    return throwDisplay.join(' ');
+                  })()}</div>
                   {(() => {
                     const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
                     if (finishOptions.length > 0) {
@@ -221,6 +228,14 @@ export const Game = (props: GameProps) => {
           {/* Dart Board */}
           <div class="lg:col-span-2">
             <DartBoard onScore={handleScore} />
+            <div class="flex justify-center mt-3">
+              <button
+                onClick={() => handleScore(0, 1)}
+                class="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Miss
+              </button>
+            </div>
           </div>
         </div>
       </div>
