@@ -200,7 +200,9 @@ export const Game = (props: GameProps) => {
 
   const resetLegScores = () => {
     setPlayerScores(props.settings.players.map(() => props.settings.targetPoints));
-    setCurrentPlayerIndex(0);
+    // Rotate starting player: (currentLeg - 1) % numberOfPlayers
+    const startingPlayer = (currentLeg() - 1) % props.settings.players.length;
+    setCurrentPlayerIndex(startingPlayer);
     setDartsThrown(0);
     setCurrentThrow([]);
   };

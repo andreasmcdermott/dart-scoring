@@ -97,6 +97,10 @@ export const GameSetup = (props: GameSetupProps) => {
     });
   };
 
+  const canStartGame = () => {
+    return settings().players.every(player => player.name.trim().length > 0);
+  };
+
   const handleStartGame = () => {
     const gameSettings = settings();
     localStorage.setItem('dartGameSettings', JSON.stringify(gameSettings));
@@ -119,6 +123,9 @@ export const GameSetup = (props: GameSetupProps) => {
                 onInput={(e) => updatePlayerName(player().id, e.currentTarget.value)}
                 class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Player name"
+                autocomplete="off"
+                data-lpignore="true"
+                data-form-type="other"
               />
               <button
                 onClick={() => removePlayer(player().id)}
@@ -199,7 +206,12 @@ export const GameSetup = (props: GameSetupProps) => {
       {/* Start Game Button */}
       <button
         onClick={handleStartGame}
-        class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+        disabled={!canStartGame()}
+        class={`w-full px-6 py-3 rounded-lg font-semibold transition-colors ${
+          canStartGame()
+            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+        }`}
       >
         Start Game
       </button>
