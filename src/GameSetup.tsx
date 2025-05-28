@@ -11,6 +11,7 @@ export type GameSettings =  {
   legs: number;
   sets: number;
   doubleOut: boolean;
+  doubleIn: boolean;
 }
 
 interface GameSetupProps {
@@ -32,7 +33,8 @@ export const GameSetup = (props: GameSetupProps) => {
       targetPoints: 501,
       legs: 1,
       sets: 1,
-      doubleOut: true
+      doubleOut: true,
+      doubleIn: false
     };
   };
 
@@ -94,6 +96,13 @@ export const GameSetup = (props: GameSetupProps) => {
     setSettings({
       ...settings(),
       doubleOut
+    });
+  };
+
+  const updateDoubleIn = (doubleIn: boolean) => {
+    setSettings({
+      ...settings(),
+      doubleIn
     });
   };
 
@@ -190,17 +199,29 @@ export const GameSetup = (props: GameSetupProps) => {
         </div>
       </div>
 
-      {/* Double Out Rule Section */}
+      {/* Game Rules Section */}
       <div class="mb-6">
-        <label class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={settings().doubleOut}
-            onChange={(e) => updateDoubleOut(e.currentTarget.checked)}
-            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span class="text-sm font-medium text-gray-700">Double Out (must finish with double or bullseye)</span>
-        </label>
+        <h2 class="text-lg font-semibold mb-3">Game Rules</h2>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={settings().doubleOut}
+              onChange={(e) => updateDoubleOut(e.currentTarget.checked)}
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span class="text-sm font-medium text-gray-700">Double Out (must finish with double or bullseye)</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={settings().doubleIn}
+              onChange={(e) => updateDoubleIn(e.currentTarget.checked)}
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span class="text-sm font-medium text-gray-700">Double In (must hit double or bullseye to start scoring)</span>
+          </label>
+        </div>
       </div>
 
       {/* Start Game Button */}

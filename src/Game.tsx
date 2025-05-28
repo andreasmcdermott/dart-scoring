@@ -21,6 +21,7 @@ type GameState = {
   setsWon: number[]; // sets won by each player
   currentLeg: number;
   currentSet: number;
+  playersStarted: boolean[]; // track which players have started scoring
 }
 
 type GameProps = {
@@ -70,6 +71,9 @@ export const Game = (props: GameProps) => {
   const [currentSet, setCurrentSet] = createSignal(
     savedState?.currentSet ?? 1
   );
+  const [playersStarted, setPlayersStarted] = createSignal<boolean[]>(
+    savedState?.playersStarted ?? props.settings.players.map(() => !props.settings.doubleIn)
+  );
 
   const saveGameState = () => {
     const state: GameState = {
@@ -82,7 +86,8 @@ export const Game = (props: GameProps) => {
       legsWon: legsWon(),
       setsWon: setsWon(),
       currentLeg: currentLeg(),
-      currentSet: currentSet()
+      currentSet: currentSet(),
+      playersStarted: playersStarted()
     };
     localStorage.setItem('dartGameState', JSON.stringify(state));
   };
@@ -96,8 +101,8 @@ export const Game = (props: GameProps) => {
 
   const handleScore = (score: number, multiplier: number) => {
     const totalScore = score * multiplier;
-    const newScores = [...playerScores()];
-    const newScore = newScores[currentPlayerIndex()]! - totalScore;
+    const playerIndex = currentPlayerIndex();
+    const hasStarted = playersStarted()[playerIndex];
     
     const dartThrow: DartThrow = {
       number: score,
@@ -106,17 +111,45 @@ export const Game = (props: GameProps) => {
       timestamp: Date.now()
     };
     
+    // Check if player needs to start with double-in
+    const isValidStart = !props.settings.doubleIn || multiplier === 2 || score === 50;
+    
+    if (!hasStarted && !isValidStart && totalScore > 0) {
+      // Player hasn't started and this isn't a valid starting throw
+      setAllThrows([...allThrows(), dartThrow]);
+      setCurrentThrow([...currentThrow(), 0]); // Show 0 for invalid start
+      setDartsThrown(dartsThrown() + 1);
+      
+      if (dartsThrown() >= 3) {
+        nextPlayer();
+      }
+      return;
+    }
+    
+    // If this is a valid starting throw and player hasn't started, mark them as started
+    if (!hasStarted && isValidStart && totalScore > 0) {
+      const newPlayersStarted = [...playersStarted()];
+      newPlayersStarted[playerIndex] = true;
+      setPlayersStarted(newPlayersStarted);
+    }
+    
+    // Only apply score if player has started or is starting now
+    const newScores = [...playerScores()];
+    const scoreToApply = (hasStarted || isValidStart) ? totalScore : 0;
+    const newScore = newScores[playerIndex]! - scoreToApply;
+    
     const isValidFinish = !props.settings.doubleOut || multiplier === 2 || score === 50;
     
     if (newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish)) {
       setAllThrows([...allThrows(), dartThrow]);
+      setCurrentThrow([...currentThrow(), scoreToApply]);
       nextPlayer();
       return;
     }
 
-    newScores[currentPlayerIndex()] = newScore;
+    newScores[playerIndex] = newScore;
     setPlayerScores(newScores);
-    setCurrentThrow([...currentThrow(), totalScore]);
+    setCurrentThrow([...currentThrow(), scoreToApply]);
     setAllThrows([...allThrows(), dartThrow]);
     setDartsThrown(dartsThrown() + 1);
 
@@ -205,6 +238,8 @@ export const Game = (props: GameProps) => {
     setCurrentPlayerIndex(startingPlayer);
     setDartsThrown(0);
     setCurrentThrow([]);
+    // Reset double-in status for new leg
+    setPlayersStarted(props.settings.players.map(() => !props.settings.doubleIn));
   };
 
   const handleEndGame = () => {
