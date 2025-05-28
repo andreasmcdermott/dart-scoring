@@ -85,7 +85,9 @@ export const Game = (props: GameProps) => {
       timestamp: Date.now()
     };
     
-    if (newScore < 0 || (newScore === 0 && multiplier !== 2)) {
+    const isValidFinish = !props.settings.doubleOut || multiplier === 2 || score === 50;
+    
+    if (newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish)) {
       setAllThrows([...allThrows(), dartThrow]);
       nextPlayer();
       return;
@@ -97,7 +99,7 @@ export const Game = (props: GameProps) => {
     setAllThrows([...allThrows(), dartThrow]);
     setDartsThrown(dartsThrown() + 1);
 
-    if (newScore === 0 && multiplier === 2) {
+    if (newScore === 0 && isValidFinish) {
       alert(`${currentPlayer()!.name} wins!`);
       localStorage.removeItem('dartGameState');
       return;

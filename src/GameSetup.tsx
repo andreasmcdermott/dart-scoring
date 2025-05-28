@@ -10,6 +10,7 @@ export type GameSettings =  {
   targetPoints: number;
   legs: number;
   sets: number;
+  doubleOut: boolean;
 }
 
 interface GameSetupProps {
@@ -30,7 +31,8 @@ export const GameSetup = (props: GameSetupProps) => {
       players: [{ id: '1', name: 'Player 1' }],
       targetPoints: 501,
       legs: 1,
-      sets: 1
+      sets: 1,
+      doubleOut: true
     };
   };
 
@@ -86,6 +88,13 @@ export const GameSetup = (props: GameSetupProps) => {
     setSettings({
       ...settings(),
       sets: Math.max(1, sets)
+    });
+  };
+
+  const updateDoubleOut = (doubleOut: boolean) => {
+    setSettings({
+      ...settings(),
+      doubleOut
     });
   };
 
@@ -173,6 +182,19 @@ export const GameSetup = (props: GameSetupProps) => {
             class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+      </div>
+
+      {/* Double Out Rule Section */}
+      <div class="mb-6">
+        <label class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={settings().doubleOut}
+            onChange={(e) => updateDoubleOut(e.currentTarget.checked)}
+            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span class="text-sm font-medium text-gray-700">Double Out (must finish with double or bullseye)</span>
+        </label>
       </div>
 
       {/* Start Game Button */}
