@@ -3,51 +3,53 @@ export type FinishOption = {
   throws: Array<{ number: number; multiplier: number }>;
 }
 
-export const calculateFinishOptions = (remainingScore: number, doubleOut: boolean): FinishOption[] => {
+export const calculateFinishOptions = (remainingScore: number, doubleOut: boolean, dartsRemaining: number = 3): FinishOption[] => {
   if (remainingScore <= 0 || remainingScore === 1) return [];
   
   const options: FinishOption[] = [];
   
-  // Single dart finishes
-  if (remainingScore <= 40 && remainingScore % 2 === 0) {
-    const doubleNumber = remainingScore / 2;
-    if (doubleNumber >= 1 && doubleNumber <= 20) {
-      options.push({
-        description: `D${doubleNumber}`,
-        throws: [{ number: doubleNumber, multiplier: 2 }]
-      });
-    }
-  }
-  
-  if (remainingScore === 50) {
-    options.push({
-      description: "Bull",
-      throws: [{ number: 50, multiplier: 1 }]
-    });
-  }
-  
-  if (!doubleOut && remainingScore <= 60) {
-    // Single number finishes (when double out is disabled)
-    if (remainingScore <= 20) {
-      options.push({
-        description: `${remainingScore}`,
-        throws: [{ number: remainingScore, multiplier: 1 }]
-      });
-    }
-    // Triple finishes
-    if (remainingScore <= 60 && remainingScore % 3 === 0) {
-      const tripleNumber = remainingScore / 3;
-      if (tripleNumber >= 1 && tripleNumber <= 20) {
+  // Single dart finishes (only if at least 1 dart remaining)
+  if (dartsRemaining >= 1) {
+    if (remainingScore <= 40 && remainingScore % 2 === 0) {
+      const doubleNumber = remainingScore / 2;
+      if (doubleNumber >= 1 && doubleNumber <= 20) {
         options.push({
-          description: `T${tripleNumber}`,
-          throws: [{ number: tripleNumber, multiplier: 3 }]
+          description: `D${doubleNumber}`,
+          throws: [{ number: doubleNumber, multiplier: 2 }]
         });
+      }
+    }
+    
+    if (remainingScore === 50) {
+      options.push({
+        description: "Bull",
+        throws: [{ number: 50, multiplier: 1 }]
+      });
+    }
+    
+    if (!doubleOut && remainingScore <= 60) {
+      // Single number finishes (when double out is disabled)
+      if (remainingScore <= 20) {
+        options.push({
+          description: `${remainingScore}`,
+          throws: [{ number: remainingScore, multiplier: 1 }]
+        });
+      }
+      // Triple finishes
+      if (remainingScore <= 60 && remainingScore % 3 === 0) {
+        const tripleNumber = remainingScore / 3;
+        if (tripleNumber >= 1 && tripleNumber <= 20) {
+          options.push({
+            description: `T${tripleNumber}`,
+            throws: [{ number: tripleNumber, multiplier: 3 }]
+          });
+        }
       }
     }
   }
   
-  // Two dart finishes
-  if (remainingScore <= 110) {
+  // Two dart finishes (only if at least 2 darts remaining)
+  if (dartsRemaining >= 2 && remainingScore <= 110) {
     // Try all combinations of first dart (singles, doubles, triples) + finishing double
     for (let firstNumber = 1; firstNumber <= 20; firstNumber++) {
       for (let firstMultiplier = 1; firstMultiplier <= 3; firstMultiplier++) {
@@ -88,8 +90,8 @@ export const calculateFinishOptions = (remainingScore: number, doubleOut: boolea
     }
   }
   
-  // Three dart finishes (only show a few common high finishes)
-  if (remainingScore <= 170 && remainingScore > 110) {
+  // Three dart finishes (only show a few common high finishes, only if 3 darts remaining)
+  if (dartsRemaining >= 3 && remainingScore <= 170 && remainingScore > 110) {
     // T20, T20, Bull (170)
     if (remainingScore === 170) {
       options.push({

@@ -311,7 +311,7 @@ export const Game = (props: GameProps) => {
                         return throwDisplay.join(' ');
                       })()}</div>
                       {(() => {
-                        const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
+                        const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut, 3 - dartsThrown());
                         if (finishOptions.length > 0) {
                           const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
                           return (
@@ -379,7 +379,7 @@ export const Game = (props: GameProps) => {
                               return throwDisplay.join(' ');
                             })()}</div>
                             {(() => {
-                              const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
+                              const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut, 3 - dartsThrown());
                               if (finishOptions.length > 0) {
                                 const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
                                 return (
