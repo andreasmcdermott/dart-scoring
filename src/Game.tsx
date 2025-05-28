@@ -281,83 +281,115 @@ export const Game = (props: GameProps) => {
               )}
             </div>
             <div class="space-y-2">
-              {/* Current Player - Always Expanded */}
-              <div class="p-2.5 rounded bg-blue-100 border-2 border-blue-500">
-                <div class="flex justify-between items-center">
-                  <div>
-                    <span class="font-medium">{currentPlayer()!.name}</span>
-                    {(props.settings.sets > 1 || props.settings.legs > 1) && (
-                      <div class="text-xs text-gray-600">
-                        {props.settings.sets > 1 && `Sets: ${setsWon()[currentPlayerIndex()]}`}
-                        {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
-                        {props.settings.legs > 1 && `Legs: ${legsWon()[currentPlayerIndex()]}`}
-                      </div>
-                    )}
-                  </div>
-                  <span class="text-lg font-bold">{currentScore()}</span>
-                </div>
-                <div class="mt-1 text-xs text-gray-600">
-                  <div>This throw: {(() => {
-                    const throwDisplay = [];
-                    for (let i = 0; i < 3; i++) {
-                      if (i < currentThrow().length) {
-                        throwDisplay.push(currentThrow()[i]!.toString());
-                      } else {
-                        throwDisplay.push('-');
-                      }
-                    }
-                    return throwDisplay.join(' ');
-                  })()}</div>
-                  {(() => {
-                    const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
-                    if (finishOptions.length > 0) {
-                      const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
-                      return (
-                        <div class="mt-1 text-xs text-green-700 bg-green-50 p-1 rounded">
-                          <span class="font-semibold">Finish: </span>{optionsText}
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                </div>
-              </div>
-              
-              {/* Other Players - Collapsed */}
               {props.settings.players.length > 4 ? (
-                <div class="grid grid-cols-2 gap-1">
-                  {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
-                    const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
-                    return (
-                      <div class="p-1.5 rounded bg-gray-50 text-center">
-                        <div class="text-xs font-medium truncate">{player.name}</div>
-                        <div class="text-sm font-bold">{playerScores()[originalIndex]}</div>
+                <>
+                  {/* Current Player - Expanded for many players */}
+                  <div class="p-2.5 rounded bg-blue-100 border-2 border-blue-500">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="font-medium">{currentPlayer()!.name}</span>
                         {(props.settings.sets > 1 || props.settings.legs > 1) && (
-                          <div class="text-xs text-gray-500">
-                            {props.settings.sets > 1 && `S:${setsWon()[originalIndex]}`}
-                            {props.settings.sets > 1 && props.settings.legs > 1 && " "}
-                            {props.settings.legs > 1 && `L:${legsWon()[originalIndex]}`}
+                          <div class="text-xs text-gray-600">
+                            {props.settings.sets > 1 && `Sets: ${setsWon()[currentPlayerIndex()]}`}
+                            {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
+                            {props.settings.legs > 1 && `Legs: ${legsWon()[currentPlayerIndex()]}`}
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                      <span class="text-lg font-bold">{currentScore()}</span>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-600">
+                      <div>This throw: {(() => {
+                        const throwDisplay = [];
+                        for (let i = 0; i < 3; i++) {
+                          if (i < currentThrow().length) {
+                            throwDisplay.push(currentThrow()[i]!.toString());
+                          } else {
+                            throwDisplay.push('-');
+                          }
+                        }
+                        return throwDisplay.join(' ');
+                      })()}</div>
+                      {(() => {
+                        const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
+                        if (finishOptions.length > 0) {
+                          const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
+                          return (
+                            <div class="mt-1 text-xs text-green-700 bg-green-50 p-1 rounded">
+                              <span class="font-semibold">Finish: </span>{optionsText}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                  
+                  {/* Other Players - Collapsed Grid */}
+                  <div class="grid grid-cols-2 gap-1">
+                    {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
+                      const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
+                      return (
+                        <div class="p-1.5 rounded bg-gray-50 text-center">
+                          <div class="text-xs font-medium truncate">{player.name}</div>
+                          <div class="text-sm font-bold">{playerScores()[originalIndex]}</div>
+                          {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                            <div class="text-xs text-gray-500">
+                              {props.settings.sets > 1 && `S:${setsWon()[originalIndex]}`}
+                              {props.settings.sets > 1 && props.settings.legs > 1 && " "}
+                              {props.settings.legs > 1 && `L:${legsWon()[originalIndex]}`}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               ) : (
                 <>
-                  {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
-                    const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
+                  {/* All Players - Full Width Rows with Active Highlighting */}
+                  {props.settings.players.map((player, playerIndex) => {
+                    const isActive = playerIndex === currentPlayerIndex();
                     return (
-                      <div class="p-1.5 rounded bg-gray-50">
+                      <div class={`p-2.5 rounded ${isActive ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-50'}`}>
                         <div class="flex justify-between items-center">
-                          <span class="text-sm font-medium">{player.name}</span>
-                          <span class="text-base font-bold">{playerScores()[originalIndex]}</span>
+                          <div>
+                            <span class={`font-medium ${isActive ? 'font-semibold' : ''}`}>{player.name}</span>
+                            {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                              <div class="text-xs text-gray-600">
+                                {props.settings.sets > 1 && `Sets: ${setsWon()[playerIndex]}`}
+                                {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
+                                {props.settings.legs > 1 && `Legs: ${legsWon()[playerIndex]}`}
+                              </div>
+                            )}
+                          </div>
+                          <span class={`font-bold ${isActive ? 'text-lg' : 'text-base'}`}>{playerScores()[playerIndex]}</span>
                         </div>
-                        {(props.settings.sets > 1 || props.settings.legs > 1) && (
-                          <div class="text-xs text-gray-500">
-                            {props.settings.sets > 1 && `Sets: ${setsWon()[originalIndex]}`}
-                            {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
-                            {props.settings.legs > 1 && `Legs: ${legsWon()[originalIndex]}`}
+                        {isActive && (
+                          <div class="mt-1 text-xs text-gray-600">
+                            <div>This throw: {(() => {
+                              const throwDisplay = [];
+                              for (let i = 0; i < 3; i++) {
+                                if (i < currentThrow().length) {
+                                  throwDisplay.push(currentThrow()[i]!.toString());
+                                } else {
+                                  throwDisplay.push('-');
+                                }
+                              }
+                              return throwDisplay.join(' ');
+                            })()}</div>
+                            {(() => {
+                              const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
+                              if (finishOptions.length > 0) {
+                                const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
+                                return (
+                                  <div class="mt-1 text-xs text-green-700 bg-green-50 p-1 rounded">
+                                    <span class="font-semibold">Finish: </span>{optionsText}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         )}
                       </div>
