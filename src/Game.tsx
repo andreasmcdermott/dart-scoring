@@ -17,6 +17,10 @@ type GameState = {
   dartsThrown: number;
   currentThrow: number[];
   allThrows: DartThrow[];
+  legsWon: number[]; // legs won by each player
+  setsWon: number[]; // sets won by each player
+  currentLeg: number;
+  currentSet: number;
 }
 
 type GameProps = {
@@ -54,6 +58,18 @@ export const Game = (props: GameProps) => {
   const [allThrows, setAllThrows] = createSignal<DartThrow[]>(
     savedState?.allThrows ?? []
   );
+  const [legsWon, setLegsWon] = createSignal<number[]>(
+    savedState?.legsWon ?? props.settings.players.map(() => 0)
+  );
+  const [setsWon, setSetsWon] = createSignal<number[]>(
+    savedState?.setsWon ?? props.settings.players.map(() => 0)
+  );
+  const [currentLeg, setCurrentLeg] = createSignal(
+    savedState?.currentLeg ?? 1
+  );
+  const [currentSet, setCurrentSet] = createSignal(
+    savedState?.currentSet ?? 1
+  );
 
   const saveGameState = () => {
     const state: GameState = {
@@ -62,7 +78,11 @@ export const Game = (props: GameProps) => {
       playerScores: playerScores(),
       dartsThrown: dartsThrown(),
       currentThrow: currentThrow(),
-      allThrows: allThrows()
+      allThrows: allThrows(),
+      legsWon: legsWon(),
+      setsWon: setsWon(),
+      currentLeg: currentLeg(),
+      currentSet: currentSet()
     };
     localStorage.setItem('dartGameState', JSON.stringify(state));
   };
@@ -101,8 +121,7 @@ export const Game = (props: GameProps) => {
     setDartsThrown(dartsThrown() + 1);
 
     if (newScore === 0 && isValidFinish) {
-      alert(`${currentPlayer()!.name} wins!`);
-      localStorage.removeItem('dartGameState');
+      handleLegWin();
       return;
     }
 
@@ -133,6 +152,59 @@ export const Game = (props: GameProps) => {
     setAllThrows(newAllThrows);
   };
 
+  const handleLegWin = () => {
+    const playerIndex = currentPlayerIndex();
+    const newLegsWon = [...legsWon()];
+    newLegsWon[playerIndex]++;
+    setLegsWon(newLegsWon);
+
+    const legsToWin = Math.ceil(props.settings.legs / 2);
+    
+    if (newLegsWon[playerIndex] >= legsToWin) {
+      handleSetWin();
+    } else {
+      startNewLeg();
+    }
+  };
+
+  const handleSetWin = () => {
+    const playerIndex = currentPlayerIndex();
+    const newSetsWon = [...setsWon()];
+    newSetsWon[playerIndex]++;
+    setSetsWon(newSetsWon);
+
+    const setsToWin = Math.ceil(props.settings.sets / 2);
+    
+    if (newSetsWon[playerIndex] >= setsToWin) {
+      alert(`${currentPlayer()!.name} wins the match!`);
+      localStorage.removeItem('dartGameState');
+      props.onEndGame();
+    } else {
+      startNewSet();
+    }
+  };
+
+  const startNewLeg = () => {
+    alert(`${currentPlayer()!.name} wins leg ${currentLeg()}!`);
+    setCurrentLeg(currentLeg() + 1);
+    resetLegScores();
+  };
+
+  const startNewSet = () => {
+    alert(`${currentPlayer()!.name} wins set ${currentSet()}!`);
+    setCurrentSet(currentSet() + 1);
+    setCurrentLeg(1);
+    setLegsWon(props.settings.players.map(() => 0));
+    resetLegScores();
+  };
+
+  const resetLegScores = () => {
+    setPlayerScores(props.settings.players.map(() => props.settings.targetPoints));
+    setCurrentPlayerIndex(0);
+    setDartsThrown(0);
+    setCurrentThrow([]);
+  };
+
   const handleEndGame = () => {
     localStorage.removeItem('dartGameState');
     props.onEndGame();
@@ -161,15 +233,33 @@ export const Game = (props: GameProps) => {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Scores Panel */}
           <div class="bg-white rounded-lg shadow p-3 max-h-[50vh] overflow-y-auto">
-            <h2 class="text-base font-semibold mb-2">Scores</h2>
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="text-base font-semibold">Scores</h2>
+              {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                <div class="text-xs text-gray-600">
+                  {props.settings.sets > 1 && `Set ${currentSet()}`}
+                  {props.settings.sets > 1 && props.settings.legs > 1 && ", "}
+                  {props.settings.legs > 1 && `Leg ${currentLeg()}`}
+                </div>
+              )}
+            </div>
             <div class="space-y-2">
               {/* Current Player - Always Expanded */}
               <div class="p-2.5 rounded bg-blue-100 border-2 border-blue-500">
                 <div class="flex justify-between items-center">
-                  <span class="font-medium">{currentPlayer()!.name}</span>
+                  <div>
+                    <span class="font-medium">{currentPlayer()!.name}</span>
+                    {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                      <div class="text-xs text-gray-600">
+                        {props.settings.sets > 1 && `Sets: ${setsWon()[currentPlayerIndex()]}`}
+                        {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
+                        {props.settings.legs > 1 && `Legs: ${legsWon()[currentPlayerIndex()]}`}
+                      </div>
+                    )}
+                  </div>
                   <span class="text-lg font-bold">{currentScore()}</span>
                 </div>
-                <div class="mt-1 text-xs text-gray-600 min-h-12">
+                <div class="mt-1 text-xs text-gray-600">
                   <div>This throw: {(() => {
                     const throwDisplay = [];
                     for (let i = 0; i < 3; i++) {
@@ -205,6 +295,13 @@ export const Game = (props: GameProps) => {
                       <div class="p-1.5 rounded bg-gray-50 text-center">
                         <div class="text-xs font-medium truncate">{player.name}</div>
                         <div class="text-sm font-bold">{playerScores()[originalIndex]}</div>
+                        {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                          <div class="text-xs text-gray-500">
+                            {props.settings.sets > 1 && `S:${setsWon()[originalIndex]}`}
+                            {props.settings.sets > 1 && props.settings.legs > 1 && " "}
+                            {props.settings.legs > 1 && `L:${legsWon()[originalIndex]}`}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -214,9 +311,18 @@ export const Game = (props: GameProps) => {
                   {props.settings.players.filter((_, index) => index !== currentPlayerIndex()).map((player, filteredIndex) => {
                     const originalIndex = props.settings.players.findIndex(p => p.id === player.id);
                     return (
-                      <div class="p-1.5 rounded bg-gray-50 flex justify-between items-center">
-                        <span class="text-sm font-medium">{player.name}</span>
-                        <span class="text-base font-bold">{playerScores()[originalIndex]}</span>
+                      <div class="p-1.5 rounded bg-gray-50">
+                        <div class="flex justify-between items-center">
+                          <span class="text-sm font-medium">{player.name}</span>
+                          <span class="text-base font-bold">{playerScores()[originalIndex]}</span>
+                        </div>
+                        {(props.settings.sets > 1 || props.settings.legs > 1) && (
+                          <div class="text-xs text-gray-500">
+                            {props.settings.sets > 1 && `Sets: ${setsWon()[originalIndex]}`}
+                            {props.settings.sets > 1 && props.settings.legs > 1 && " | "}
+                            {props.settings.legs > 1 && `Legs: ${legsWon()[originalIndex]}`}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
