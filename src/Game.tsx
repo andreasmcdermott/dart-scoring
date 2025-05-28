@@ -134,19 +134,30 @@ export const Game = (props: GameProps) => {
     }
     
     // Only apply score if player has started or is starting now
-    const newScores = [...playerScores()];
     const scoreToApply = (hasStarted || isValidStart) ? totalScore : 0;
-    const newScore = newScores[playerIndex]! - scoreToApply;
+    
+    // Calculate what the new score would be
+    const currentPlayerScore = playerScores()[playerIndex]!;
+    const newScore = currentPlayerScore - scoreToApply;
     
     const isValidFinish = !props.settings.doubleOut || multiplier === 2 || score === 50;
     
+    // Check for bust conditions
     if (newScore < 0 || newScore === 1 || (newScore === 0 && !isValidFinish)) {
+      // BUST: Revert to score at start of turn
+      const turnStartScore = currentPlayerScore + currentThrow().reduce((sum, dart) => sum + dart, 0);
+      const newScores = [...playerScores()];
+      newScores[playerIndex] = turnStartScore;
+      setPlayerScores(newScores);
+      
       setAllThrows([...allThrows(), dartThrow]);
       setCurrentThrow([...currentThrow(), scoreToApply]);
       nextPlayer();
       return;
     }
 
+    // Valid throw - apply the score
+    const newScores = [...playerScores()];
     newScores[playerIndex] = newScore;
     setPlayerScores(newScores);
     setCurrentThrow([...currentThrow(), scoreToApply]);
