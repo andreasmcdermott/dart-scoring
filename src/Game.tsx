@@ -1,6 +1,7 @@
-import { createSignal, createEffect } from 'solid-js';
+import { createSignal, createEffect, For } from 'solid-js';
 import DartBoard from './DartBoard';
 import { type GameSettings } from './GameSetup';
+import { calculateFinishOptions } from './finishCalculator';
 
 type DartThrow = {
   number: number;
@@ -168,11 +169,23 @@ export const Game = (props: GameProps) => {
                   <span class="font-medium">{currentPlayer()!.name}</span>
                   <span class="text-lg font-bold">{currentScore()}</span>
                 </div>
-                <div class="mt-1 text-xs text-gray-600 h-8">
+                <div class="mt-1 text-xs text-gray-600 min-h-16">
                   <div>Darts: {dartsThrown()}/3</div>
                   {currentThrow().length > 0 && (
                     <div>This throw: {currentThrow().join(', ')}</div>
                   )}
+                  {(() => {
+                    const finishOptions = calculateFinishOptions(currentScore()!, props.settings.doubleOut);
+                    if (finishOptions.length > 0) {
+                      const optionsText = finishOptions.slice(0, 3).map(o => o.description).join(' or ');
+                      return (
+                        <div class="mt-1 text-xs text-green-700 bg-green-50 p-1 rounded">
+                          <span class="font-semibold">Finish: </span>{optionsText}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
               
